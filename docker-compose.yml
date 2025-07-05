@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: github_webhooks_db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: github_webhooks
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - webhook_network
+
+  webhook_app:
+    build: .
+    container_name: github_webhook_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - DATABASE_NAME=github_webhooks
+      - COLLECTION_NAME=actions
+      - WEBHOOK_SECRET=your-webhook-secret-here
+    depends_on:
+      - mongodb
+    networks:
+      - webhook_network
+    volumes:
+      - ./templates:/app/templates
+
+volumes:
+  mongodb_data:
+
+networks:
+  webhook_network:
+    driver: bridge
