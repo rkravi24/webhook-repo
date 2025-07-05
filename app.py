@@ -27,15 +27,15 @@ try:
     client = MongoClient(MONGO_URI)
     db = client[DATABASE_NAME]
     collection = db[COLLECTION_NAME]
-    logger.info("✅ Connected to MongoDB successfully")
+    logger.info("Connected to MongoDB successfully")
 except Exception as e:
-    logger.error(f"❌ Failed to connect to MongoDB: {e}")
+    logger.error(f"Failed to connect to MongoDB: {e}")
     raise
 
 # Verify signature
 def verify_signature(payload_body, signature_header):
     if not signature_header:
-        logger.warning("❌ Missing signature header")
+        logger.warning("Missing signature header")
         return False
 
     expected_signature = 'sha256=' + hmac.new(
@@ -94,7 +94,7 @@ def extract_event_data(payload, event_type):
 
         return None
     except KeyError as e:
-        logger.error(f"❌ Missing key in payload: {e}")
+        logger.error(f"Missing key in payload: {e}")
         return None
 
 # Serve index
@@ -106,14 +106,14 @@ def index():
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-        return "🚫 GET not supported on /webhook. Use POST from GitHub.", 405
+        return "GET not supported on /webhook. Use POST from GitHub.", 405
 
     try:
         signature = request.headers.get('X-Hub-Signature-256')
         event_type = request.headers.get('X-GitHub-Event')
 
         if not verify_signature(request.data, signature):
-            logger.warning("❌ Invalid webhook signature")
+            logger.warning("Invalid webhook signature")
             return jsonify({'error': 'Invalid signature'}), 403
 
         payload = request.get_json()
@@ -136,7 +136,7 @@ def webhook():
 
         if event_data:
             result = collection.insert_one(event_data)
-            logger.info(f"✅ Stored event with ID: {result.inserted_id}")
+            logger.info(f"Stored event with ID: {result.inserted_id}")
             return jsonify({
                 'success': True,
                 'message': f'{event_data["action"]} event stored successfully',
@@ -147,7 +147,7 @@ def webhook():
             return jsonify({'message': 'Event not processed'}), 200
 
     except Exception as e:
-        logger.error(f"❌ Error processing webhook: {e}")
+        logger.error(f"Error processing webhook: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 # Fetch events API
@@ -174,7 +174,7 @@ def get_events():
         return jsonify({'success': True, 'events': formatted_events}), 200
 
     except Exception as e:
-        logger.error(f"❌ Error fetching events: {e}")
+        logger.error(f"Error fetching events: {e}")
         return jsonify({'error': 'Failed to fetch events'}), 500
 
 # Health check
